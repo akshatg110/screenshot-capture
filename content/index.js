@@ -18,9 +18,12 @@ var image = (done) => {
 }
 
 var init = (done) => {
+  console.log("LOGGING AT INIT")
   $('#fake-image').Jcrop({
     bgColor: 'none',
     onSelect: (e) => {
+      console.log("LOGGING AT SELECT")
+
       selection = e
       capture()
     },
@@ -93,8 +96,8 @@ var capture = (force) => {
       document.querySelector('body').style.overflow = 'hidden'
       setTimeout(() => {
         var images = []
-        var count = 0
-        ;(function scroll (done) {
+        var count = 0;
+        (function scroll (done) {
           chrome.runtime.sendMessage({
             message: 'capture', format: config.format, quality: config.quality
           }, (res) => {
@@ -147,14 +150,18 @@ var filename = (format) => {
 }
 
 var save = (image, format, save, clipboard, dialog) => {
+  console.log("PRINTING FINAL SAVE")
   if (save.includes('file')) {
+    console.log("PRINTING FINAL SAVE 2")
     var link = document.createElement('a')
+    console.log("PRINTING FINAL SAVE 2 final: ", image, format, save, clipboard, dialog)
     link.download = filename(format)
     link.href = image
     link.click()
   }
   if (save.includes('clipboard')) {
     if (clipboard === 'url') {
+      console.log("PRINTING FINAL SAVE 3")
       navigator.clipboard.writeText(image).then(() => {
         if (dialog) {
           alert([
@@ -166,6 +173,7 @@ var save = (image, format, save, clipboard, dialog) => {
       })
     }
     else if (clipboard === 'binary') {
+      console.log("PRINTING FINAL SAVE 4")
       var [header, base64] = image.split(',')
       var [_, type] = /data:(.*);base64/.exec(header)
       var binary = atob(base64)

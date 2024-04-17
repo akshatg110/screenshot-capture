@@ -12,6 +12,9 @@ var defaults = {
   icon: 'default',
 }
 
+let otpPopupId; // Store the ID of the OTP popup window
+
+
 chrome.storage.sync.get((store) => {
   var config = {}
   Object.assign(config, defaults, JSON.parse(JSON.stringify(store)))
@@ -108,3 +111,51 @@ chrome.runtime.onMessage.addListener((req, sender, res) => {
   }
   return true
 })
+
+// Listen for messages from phone_popup.js and otp_popup.js
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  console.log("MESSAGE: ", message);
+  if (message.action === 'submitPhoneNumber') {
+    // Store the phone number in localStorage or send it to the server
+    chrome.storage.sync.set({'phoneNumber': message.phoneNumber}, function(){
+        if (chrome.runtime.lastError) {
+          console.error(chrome.runtime.lastError);
+        }
+        else {
+          if (otpPopupId) {
+            // If OTP popup is already open, update its URL
+            chrome.windows.update(otpPopupId, { url: 'popup/otp_popup.html' });
+          } else {
+            // If OTP popup is not open, open it
+            chrome.windows.create({
+              url: 'popup/otp_popup.html',
+              type: 'popup',
+              width: 400,
+              height: 300
+            }, function(window) {
+              otpPopupId = window.id; // Store the ID of the OTP popup window
+            });
+          }
+        }
+      }
+      );
+
+
+  } else if (message.action === 'submitOTP') {
+    // Get the phone number from localStorage or retrieve it from the server
+    var phoneNumber = chrome.storage.sync.get('phoneNumber', function(data){
+      var phoneNumber = data.phoneNumber;
+
+      // Use the phone number and OTP
+      console.log('Phone Number:', phoneNumber);
+      console.log('OTP:', message.otp);
+    });
+
+    // Use the phone number and OTP
+    // console.log('Phone Number:', phoneNumber);
+    // console.log('OTP:', message.otp);
+    //
+    // // Clear phone number from localStorage if needed
+    // localStorage.removeItem('phoneNumber');
+  }
+});
