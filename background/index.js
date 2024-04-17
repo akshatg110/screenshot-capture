@@ -115,41 +115,9 @@ chrome.runtime.onMessage.addListener((req, sender, res) => {
 // Listen for messages from phone_popup.js and otp_popup.js
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   console.log("MESSAGE: ", message);
-  if (message.action === 'submitPhoneNumber') {
-    // Store the phone number in localStorage or send it to the server
-    chrome.storage.sync.set({'phoneNumber': message.phoneNumber}, function(){
-        if (chrome.runtime.lastError) {
-          console.error(chrome.runtime.lastError);
-        }
-        else {
-          if (otpPopupId) {
-            // If OTP popup is already open, update its URL
-            chrome.windows.update(otpPopupId, { url: 'popup/otp_popup.html' });
-          } else {
-            // If OTP popup is not open, open it
-            chrome.windows.create({
-              url: 'popup/otp_popup.html',
-              type: 'popup',
-              width: 400,
-              height: 300
-            }, function(window) {
-              otpPopupId = window.id; // Store the ID of the OTP popup window
-            });
-          }
-        }
-      }
-      );
-
-
-  } else if (message.action === 'submitOTP') {
+  if (message.action === 'submitOTP') {
     // Get the phone number from localStorage or retrieve it from the server
-    var phoneNumber = chrome.storage.sync.get('phoneNumber', function(data){
-      var phoneNumber = data.phoneNumber;
-
-      // Use the phone number and OTP
-      console.log('Phone Number:', phoneNumber);
-      console.log('OTP:', message.otp);
-    });
+    console.log("PRINTING ALL DATA: ", message)
 
     // Use the phone number and OTP
     // console.log('Phone Number:', phoneNumber);
@@ -159,3 +127,31 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     // localStorage.removeItem('phoneNumber');
   }
 });
+
+
+function postData(url = '', data = {}) {
+  url = 'https://dummyjson.com/posts'
+  data = JSON.stringify({
+    title: 'I am in love with someone.',
+    userId: 5,
+    /* other post data */
+  });
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // Add any additional headers if required
+    },
+    body: JSON.stringify(data),
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      console.log("RESPONSE: ", response.json())
+      return response.json();
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
